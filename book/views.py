@@ -1,3 +1,4 @@
+from urllib import request
 from rest_framework.response import Response
 from .models import Book, BookCopy, BorrowRecord
 from .serializers import BookModelSerializer, BookListModelSerializer, BookCopyModelSerializer, BorrowRecordModelSerializer
@@ -114,6 +115,16 @@ class BorrowRecordAPIView(APIView):
         except BorrowRecord.DoesNotExist:
             return Response({'message': 'Borrow record not found'}, status=status.HTTP_404_NOT_FOUND)
         now = timezone.now()
+        
+        if request.user.role in ['librarian', 'admin']:
+            pass
+        else:
+            if borrow_record.user != request.user:
+                return Response({'message': 'You can only return your own books'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if now < borrow_record.borrow_date:
+            return Response({'message': 'Return date cannot be before borrow date'}, status=status.HTTP_400_BAD_REQUEST)
+
         borrow_record.return_date = now
         borrow_record.save()
 
@@ -130,6 +141,20 @@ class BorrowRecordAPIView(APIView):
     def get(self, request):
         borrows = BorrowRecord.objects.filter(user=request.user)
         return Response(BorrowRecordModelSerializer(borrows, many=True).data)
+    
+    
+class BorrowListAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsLibrarianOrAdmin]
+
+    def get(self, request):
+        status_filter = request.query_params.get('status')
+        queryset = BorrowRecord.objects.all()
+
+        if status_filter == 'overdue':
+            now = timezone.now()
+            queryset = queryset.filter(return_date__isnull=True, due_date__lt=now)
+
+        return Response(BorrowRecordModelSerializer(queryset, many=True).data)
 
 
 class MarkFeePaidAPIView(APIView):
@@ -144,12 +169,3 @@ class MarkFeePaidAPIView(APIView):
         borrow_record.fee_paid = True
         borrow_record.save()
         return Response({'message': 'Fee marked as paid', 'record': BorrowRecordModelSerializer(borrow_record).data})
-
-
-class OverdueBorrowRecordsAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsLibrarianOrAdmin]
-
-    def get(self, request):
-        now = timezone.now()
-        overdue_borrows = BorrowRecord.objects.filter(return_date__isnull=True, due_date__lt=now)
-        return Response(BorrowRecordModelSerializer(overdue_borrows, many=True).data)

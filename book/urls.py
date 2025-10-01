@@ -15,9 +15,9 @@ router.register('copies', views.BookCopyViewSet, basename='copies')
 urlpatterns = [
     path('health_check/', views.HealthCheckAPIView.as_view(), name='health-check'),
     path('borrow/', views.BorrowRecordAPIView.as_view(), name='borrow-book'),
+    path('borrows/', views.BorrowListAPIView.as_view(), name='borrow-list'),
     path('return/<int:id>/', views.BorrowRecordAPIView.as_view(), name='return-book'),
     path('my-borrows/', views.BorrowRecordAPIView.as_view(), name='my-borrows'),
-    path('overdue-borrows/', views.OverdueBorrowRecordsAPIView.as_view(), name='overdue-borrows'),
     path('mark-fee-paid/<int:id>/', views.MarkFeePaidAPIView.as_view(), name='mark-fee-paid'),
 ]
 
@@ -32,8 +32,8 @@ books/id/ - destroy
 books/id/available_copies/ - available copies
 copies/ - list|create|update|delete
 borrow/ - borrow a book copy {'book_copy': 1}
+borrows/ - list all borrow records (librarian/admin)
 return/id/ - return a book copy
 my-borrows/ - list user's borrow records
-overdue-borrows/ - list all overdue borrows (librarian/admin)
 mark-fee-paid/id/ - mark late fee as paid (librarian/admin)
 """
