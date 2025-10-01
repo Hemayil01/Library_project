@@ -1,7 +1,6 @@
 from rest_framework.response import Response
-from .models import Book, Author, BookCopy, BorrowRecord
+from .models import Book, BookCopy, BorrowRecord
 from .serializers import BookModelSerializer, BookListModelSerializer, BookCopyModelSerializer, BorrowRecordModelSerializer
-from .serializers import AuthorModelSerializer
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -60,39 +59,6 @@ class BookViewSet(viewsets.ModelViewSet):
         book = self.get_object()
         return Response({'available_copies': book.available_copies()})
 
-
-class AuthorViewSet(viewsets.ModelViewSet):
-    queryset = Author.objects.all()
-    serializer_class = AuthorModelSerializer
-    filter_backends = [drf_filters.OrderingFilter, drf_filters.SearchFilter]
-    search_fields = ['name']
-    ordering_fields = ['name', 'birth_date']
-    ordering = ['name']
-
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve', 'by_name']:
-            permission_classes = [permissions.AllowAny]
-        else:
-            permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
-        return [perm() for perm in permission_classes]
-
-    @action(detail=True, methods=['post'], url_path='change_name',
-            permission_classes=[permissions.IsAuthenticated, IsAdminOrReadOnly])
-    def change_name(self, request, pk=None):
-        author = self.get_object()
-        new_name = request.data.get('name')
-        serializer = self.get_serializer(author, {'name': new_name}, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({'message': 'Author name changed successfully', 'author': AuthorModelSerializer(author).data})
-
-    @action(detail=False, methods=['get'], url_path='by_name', permission_classes=[permissions.AllowAny])
-    def by_name(self, request):
-        authors = self.queryset.order_by('name')
-        return Response(self.get_serializer(authors, many=True).data)
-
-
-
 class BookCopyViewSet(viewsets.ModelViewSet):
     queryset = BookCopy.objects.all()
     serializer_class = BookCopyModelSerializer
@@ -111,7 +77,7 @@ class BookCopyViewSet(viewsets.ModelViewSet):
 class BorrowRecordAPIView(APIView):
     def get_permissions(self):
         if self.request.method == 'PATCH':
-            permission_classes = [permissions.IsAuthenticated, IsOwnerOrAdmin]
+            permission_classes = [permissions.IsAuthenticated, IsOwnerOrAdmin, IsLibrarianOrAdmin]
         else:
             permission_classes = [permissions.IsAuthenticated, IsMemberOrAdmin]
         return [perm() for perm in permission_classes]
@@ -142,9 +108,9 @@ class BorrowRecordAPIView(APIView):
         book_copy.save()
         return Response(BorrowRecordModelSerializer(borrow_record).data, status=status.HTTP_201_CREATED)
 
-    def patch(self, request, pk=None):
+    def patch(self, request, id=None):
         try:
-            borrow_record = BorrowRecord.objects.get(id=pk)
+            borrow_record = BorrowRecord.objects.get(id=id)
         except BorrowRecord.DoesNotExist:
             return Response({'message': 'Borrow record not found'}, status=status.HTTP_404_NOT_FOUND)
         now = timezone.now()
@@ -156,7 +122,7 @@ class BorrowRecordAPIView(APIView):
 
         if now > borrow_record.due_date:
             days_late = (now - borrow_record.due_date).days
-            borrow_record.late_fee = days_late * 1
+            borrow_record.late_fee = decimal.Decimal(days_late) * decimal.Decimal('1.00')
             borrow_record.save()
 
         return Response(BorrowRecordModelSerializer(borrow_record).data)
@@ -164,6 +130,20 @@ class BorrowRecordAPIView(APIView):
     def get(self, request):
         borrows = BorrowRecord.objects.filter(user=request.user)
         return Response(BorrowRecordModelSerializer(borrows, many=True).data)
+
+
+class MarkFeePaidAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsLibrarianOrAdmin]
+
+    def post(self, request, id):
+        try:
+            borrow_record = BorrowRecord.objects.get(id=id)
+        except BorrowRecord.DoesNotExist:
+            return Response({'message': 'Borrow record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        borrow_record.fee_paid = True
+        borrow_record.save()
+        return Response({'message': 'Fee marked as paid', 'record': BorrowRecordModelSerializer(borrow_record).data})
 
 
 class OverdueBorrowRecordsAPIView(APIView):

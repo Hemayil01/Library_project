@@ -1,11 +1,5 @@
 from rest_framework import serializers
-from .models import Book, Author, BookCopy, BorrowRecord
-
-
-class AuthorModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Author
-        fields = '__all__'
+from .models import Book, BookCopy, BorrowRecord
 
 
 class BookListModelSerializer(serializers.ModelSerializer):
@@ -19,7 +13,7 @@ class BookModelSerializer(serializers.ModelSerializer):
    class Meta:
         model = Book
         fields = '__all__'
-        read_only_fields = ["id"]
+        read_only_fields = ['id']
         extra_kwargs = {
             'publication_year': {'required': False, 'allow_null': True}
         }

@@ -1,12 +1,5 @@
 from django.db import models
 
-# author 4 - book 3, book 2  -
-# Cascade - author deletion will delete all their books
-# PROTECT - author deletion will be prevented if they have books
-# SET_NULL - author deletion will set the author field of their books to NULL
-# SET_DEFAULT - author deletion will set the author field of their books to a default value
-# DO_NOTHING - author deletion will do nothing to their books
-
 from user.models import User
 
 # book 4 - bookcopy 3 , bookcopy 2
@@ -19,19 +12,9 @@ from user.models import User
 # protect - a copy that is borrowed cannot be deleted
 
 
-class Author(models.Model):
-    name = models.CharField(max_length=255)
-    biography = models.TextField(null=True, blank=True)
-    birth_date = models.DateField()
-
-    def __str__(self):
-        return self.name
-
-
-
 class Book(models.Model):
     title = models.CharField(max_length=255)
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books')
+    author = models.CharField(max_length=255)
     isbn = models.CharField(max_length=13, unique=True)
     publication_year = models.PositiveIntegerField()
     topics = models.CharField(max_length=255, blank=True)
@@ -74,9 +57,10 @@ class BorrowRecord(models.Model):
     due_date = models.DateTimeField()
     return_date = models.DateTimeField(null=True, blank=True)
     late_fee = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    fee_paid = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.email} - {self.book_copy.book.title}"
+        return f'{self.user.email} - {self.book_copy.book.title}'
 
     def is_overdue(self):
         from django.utils import timezone

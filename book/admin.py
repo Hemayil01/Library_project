@@ -1,12 +1,5 @@
 from django.contrib import admin
-from .models import Author, Book, BookCopy, BorrowRecord
-
-
-@admin.register(Author)
-class AuthorAdmin(admin.ModelAdmin):
-    list_display = ['name', 'birth_date']
-    search_fields = ['name',]
-    ordering = ['name',]
+from .models import  Book, BookCopy, BorrowRecord
 
 
 @admin.register(Book)

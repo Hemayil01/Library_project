@@ -10,7 +10,6 @@ Book endpoints:
 
 router = DefaultRouter()
 router.register('books', views.BookViewSet, basename='books')
-router.register('authors', views.AuthorViewSet, basename='authors')
 router.register('copies', views.BookCopyViewSet, basename='copies')
 
 urlpatterns = [
@@ -19,6 +18,7 @@ urlpatterns = [
     path('return/<int:id>/', views.BorrowRecordAPIView.as_view(), name='return-book'),
     path('my-borrows/', views.BorrowRecordAPIView.as_view(), name='my-borrows'),
     path('overdue-borrows/', views.OverdueBorrowRecordsAPIView.as_view(), name='overdue-borrows'),
+    path('mark-fee-paid/<int:id>/', views.MarkFeePaidAPIView.as_view(), name='mark-fee-paid'),
 ]
 
 urlpatterns += router.urls
@@ -30,11 +30,10 @@ books/id/ - retrieve
 books/id/ - update|partial_update
 books/id/ - destroy
 books/id/available_copies/ - available copies
-authors/ - list|create
-authors/id/ - retrieve|update|delete
 copies/ - list|create|update|delete
 borrow/ - borrow a book copy {'book_copy': 1}
 return/id/ - return a book copy
 my-borrows/ - list user's borrow records
 overdue-borrows/ - list all overdue borrows (librarian/admin)
+mark-fee-paid/id/ - mark late fee as paid (librarian/admin)
 """
