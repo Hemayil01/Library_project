@@ -30,7 +30,7 @@ class Book(models.Model):
     )
 
     def __str__(self):
-        return f'{self.title} ({self.author.name})'
+        return f'{self.title} ({self.author})'
 
     def available_copies(self):
         borrowed_count = BookCopy.objects.filter(book=self, status=BookCopy.Status.BORROWED).count()
@@ -56,7 +56,7 @@ class BorrowRecord(models.Model):
     borrow_date = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField()
     return_date = models.DateTimeField(null=True, blank=True)
-    late_fee = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    late_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     fee_paid = models.BooleanField(default=False)
 
     def __str__(self):

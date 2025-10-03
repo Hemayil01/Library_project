@@ -25,4 +25,4 @@ class BorrowRecordAdmin(admin.ModelAdmin):
     list_filter = ['due_date', 'return_date']
     search_fields = ['user__email', 'book_copy__book__title']
     ordering = ['-borrow_date',]
-    readonly_fields = ['borrow_date', 'late_fee']
+    readonly_fields = ['borrow_date', 'late_fee','fee_paid']

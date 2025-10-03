@@ -1,4 +1,3 @@
-from urllib import request
 from rest_framework.response import Response
 from .models import Book, BookCopy, BorrowRecord
 from .serializers import BookModelSerializer, BookListModelSerializer, BookCopyModelSerializer, BorrowRecordModelSerializer
@@ -78,7 +77,7 @@ class BookCopyViewSet(viewsets.ModelViewSet):
 class BorrowRecordAPIView(APIView):
     def get_permissions(self):
         if self.request.method == 'PATCH':
-            permission_classes = [permissions.IsAuthenticated, IsOwnerOrAdmin, IsLibrarianOrAdmin]
+            permission_classes = [permissions.IsAuthenticated, IsOwnerOrAdmin]
         else:
             permission_classes = [permissions.IsAuthenticated, IsMemberOrAdmin]
         return [perm() for perm in permission_classes]
@@ -118,12 +117,8 @@ class BorrowRecordAPIView(APIView):
         
         if request.user.role in ['librarian', 'admin']:
             pass
-        else:
-            if borrow_record.user != request.user:
-                return Response({'message': 'You can only return your own books'}, status=status.HTTP_403_FORBIDDEN)
-        
-        if now < borrow_record.borrow_date:
-            return Response({'message': 'Return date cannot be before borrow date'}, status=status.HTTP_400_BAD_REQUEST)
+        elif borrow_record.user != request.user:
+            return Response({'message': 'You can only return your own books'}, status=status.HTTP_403_FORBIDDEN)
 
         borrow_record.return_date = now
         borrow_record.save()
@@ -137,9 +132,13 @@ class BorrowRecordAPIView(APIView):
             borrow_record.save()
 
         return Response(BorrowRecordModelSerializer(borrow_record).data)
+    
 
     def get(self, request):
-        borrows = BorrowRecord.objects.filter(user=request.user)
+        if request.user.role == 'librarian' or request.user.is_superuser:
+            borrows = BorrowRecord.objects.all()
+        else:
+            borrows = BorrowRecord.objects.filter(user=request.user)
         return Response(BorrowRecordModelSerializer(borrows, many=True).data)
     
     
