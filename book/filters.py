@@ -4,16 +4,16 @@ from .models import Book, BookCopy, BorrowRecord
 
 class BookFilter(filters.FilterSet):
     title = filters.CharFilter(field_name='title', lookup_expr='icontains')
-    author_name = filters.CharFilter(field_name='author__name', lookup_expr='icontains')
+    author = filters.CharFilter(field_name='author', lookup_expr='icontains')
     topics = filters.CharFilter(field_name='topics', lookup_expr='icontains')
     publication_year_min = filters.NumberFilter(field_name='publication_year', lookup_expr='gte')
     publication_year_max = filters.NumberFilter(field_name='publication_year', lookup_expr='lte')
-    language = filters.CharFilter(field_name='language', lookup_expr='iexact')
-    available_only = filters.BooleanFilter(method='filter_available')
+    language = filters.ChoiceFilter(field_name='language',choices=Book._meta.get_field('language').choices)
+    available_only = filters.BooleanFilter(method='filter_available', label='Only available books')
 
     class Meta:
         model = Book
-        fields = []
+        fields = ['title', 'author', 'topics', 'publication_year', 'language']
 
     def filter_available(self, queryset, name, value):
         if value:
@@ -37,7 +37,7 @@ class BorrowRecordFilter(filters.FilterSet):
 
     class Meta:
         model = BorrowRecord
-        fields = []
+        fields = ['user_id', 'book_title']
 
     def filter_overdue(self, queryset, name, value):
         from django.utils import timezone

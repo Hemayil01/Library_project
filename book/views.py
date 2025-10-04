@@ -32,7 +32,7 @@ class BookViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanManageBooks]
     pagination_class = CustomPageNumberPagination
     filter_backends = [filters.DjangoFilterBackend, drf_filters.SearchFilter, drf_filters.OrderingFilter]
-    search_fields = ['title', 'topics', 'author__name']
+    search_fields = ['title', 'topics', 'author']
     ordering_fields = ['publication_year', 'title', 'total_copies']
     ordering = ['-publication_year']
     filterset_class = BookFilter
@@ -126,7 +126,7 @@ class BorrowRecordAPIView(APIView):
         borrow_record.book_copy.status = BookCopy.Status.AVAILABLE
         borrow_record.book_copy.save()
 
-        if now > borrow_record.due_date:
+        if borrow_record.due_date and now > borrow_record.due_date:
             days_late = (now - borrow_record.due_date).days
             borrow_record.late_fee = decimal.Decimal(days_late) * decimal.Decimal('1.00')
             borrow_record.save()

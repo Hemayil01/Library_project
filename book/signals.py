@@ -42,5 +42,9 @@ def inform_about_borrow_record(sender, instance, created, **kwargs):
 
 @receiver(pre_save, sender=BorrowRecord)
 def validate_borrow_record(sender, instance, **kwargs):
-    if instance.return_date and instance.return_date < instance.borrow_date:
-        raise ValueError('Return date cannot be before borrow date')
+    borrow_date = getattr(instance, 'borrow_date', None)
+    return_date = getattr(instance, 'return_date', None)
+    
+    if borrow_date and return_date:
+        if return_date < borrow_date:
+            raise ValueError('Return date cannot be before borrow date')
