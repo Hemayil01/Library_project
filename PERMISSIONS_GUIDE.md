@@ -95,9 +95,9 @@ def get_permissions(self):
 
 | Method | Endpoint                    | Description         | Admin | Librarian | Member       | Guest |
 | ------ | --------------------------- | ------------------- | ----- | --------- | ------------ | ----- |
-| GET    | `/api/borrow/`              | List borrow records | ✓     | ✓         | ✓ (own only) | ✗     |
+| GET    | `/api/borrow/`              | List borrow records | ✓     | ✓         | ✓            | ✗     |
 | POST   | `/api/borrow/`              | Borrow book         | ✓     | ✓         | ✓            | ✗     |
-| POST   | `/api/return/{id}/`         | Return book         | ✓     | ✓         | ✓ (own only) | ✗     |
+| POST   | `/api/return/{id}/`         | Return book         | ✓     | ✓         | ✓            | ✗     |
 | PUT    | `/api/borrow/{id}/approve/` | Approve borrow      | ✓     | ✓         | ✗            | ✗     |
 
 ### User Endpoints (`/api/users/`)
@@ -105,9 +105,9 @@ def get_permissions(self):
 | Method | Endpoint           | Description   | Admin | Librarian | Member   | Guest |
 | ------ | ------------------ | ------------- | ----- | --------- | -------- | ----- |
 | GET    | `/api/users/`      | List users    | ✓     | ✗         | ✗        | ✗     |
-| GET    | `/api/users/{id}/` | Retrieve user | ✓     | ✓         | ✓ (self) | ✗     |
+| GET    | `/api/users/{id}/` | Retrieve user | ✓     | ✓         | ✓        | ✗     |
 | POST   | `/api/users/`      | Create user   | ✓     | ✗         | ✗        | ✗     |
-| PUT    | `/api/users/{id}/` | Update user   | ✓     | ✗         | ✓ (self) | ✗     |
+| PUT    | `/api/users/{id}/` | Update user   | ✓     | ✗         | ✓        | ✗     |
 | DELETE | `/api/users/{id}/` | Delete user   | ✓     | ✗         | ✗        | ✗     |
 
 ---
