@@ -1,1 +1,2 @@
-Hi how are you
+# Library
+Library System - Django layihəsidir və istifadəçilərə kitabları axtarmağa, icarəyə götürməyə və geri qaytarmağa imkan verir. Sistemdə 'guest' yalnız kitabları axtara bilir, 'member' kitabı icarəyə götürə bilir və öz borrow tarixçəsini görə bilir, 'librarian' kitab və nüsxələri idarə edir, gecikmiş kitabların qaytarılmasını və gecikmə haqlarını izləyir, 'admin' isə tam idarəetməyə malikdir. Layihə avtomatik qaytarılma tarixini (due date) təyin edir və gecikmiş kitablar üçün gecikmə haqqını (late fee) hesablayır.
