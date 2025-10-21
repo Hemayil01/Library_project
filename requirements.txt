@@ -8,3 +8,5 @@ pillow==11.3.0
 psycopg2-binary==2.9.10
 sqlparse==0.5.3
 tzdata==2025.2
+drf-spectacular==0.28.0
+drf-spectacular-sidecar==2025.10.1
