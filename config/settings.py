@@ -31,6 +31,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
+    #swagger for API documentation
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
 
     #applications
     'book',
@@ -118,6 +121,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
@@ -157,3 +162,35 @@ SIMPLE_JWT = {
 
 # Dev email backend; replace with SMTP in production
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Library Project API',
+    'DESCRIPTION': 'API documentation for the Library Project',
+    'VERSION': '1.0.0',
+
+    # JWT for security schemas
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': '/api',
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,  # token stays in place
+        'displayOperationId': True,
+    },
+    'SECURITY': [
+        {
+            'jwtAuth': []  # Bearer token auth
+        }
+    ],
+    'COMPONENTS': {
+        'securitySchemes': {
+            'jwtAuth': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+                'description': 'Enter your JWT token in the format: **Bearer &lt;token&gt;**',
+            },
+        },
+    },
+}
