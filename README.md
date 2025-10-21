@@ -1,2 +1,4 @@
-# Library
+# Library - Kitabxana
 Library System - Django layihəsidir və istifadəçilərə kitabları axtarmağa, icarəyə götürməyə və geri qaytarmağa imkan verir. Sistemdə 'guest' yalnız kitabları axtara bilir, 'member' kitabı icarəyə götürə bilir və öz icarə tarixçəsini görə bilir, 'librarian' kitab və nüsxələri idarə edir, gecikmiş kitabların qaytarılmasını və gecikmə haqlarını izləyir, 'admin' isə tam idarəetməyə malikdir. Layihə avtomatik qaytarılma tarixini (due date) təyin edir və gecikmiş kitablar üçün gecikmə haqqını (late fee) hesablayır.
+
+The Library System is a Django-based project that allows users to search for books, borrow them, and return them. In the system, a 'guest' can only search for books, a 'member' can borrow books and view their borrowing history, a 'librarian' manages books and copies, monitors overdue returns, and tracks late fees, while an 'admin' has full control over the entire system. The project automatically sets a due date for borrowed books and calculates a late fee for overdue returns.
