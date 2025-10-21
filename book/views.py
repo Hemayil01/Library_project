@@ -120,22 +120,23 @@ class BorrowRecordAPIView(APIView):
         elif borrow_record.user != request.user:
             return Response({'message': 'You can only return your own books'}, status=status.HTTP_403_FORBIDDEN)
 
-        borrow_record.return_date = now
-        borrow_record.save()
-
-        borrow_record.book_copy.status = BookCopy.Status.AVAILABLE
-        borrow_record.book_copy.save()
-
+       
         if borrow_record.due_date and now > borrow_record.due_date:
             days_late = (now - borrow_record.due_date).days
             borrow_record.late_fee = decimal.Decimal(days_late) * decimal.Decimal('1.00')
-            borrow_record.save()
+        else:
+            borrow_record.late_fee = decimal.Decimal('0.00')
+            
+        borrow_record.return_date = now
+        borrow_record.book_copy.status = BookCopy.Status.AVAILABLE
+        borrow_record.book_copy.save()
+        borrow_record.save()
 
         return Response(BorrowRecordModelSerializer(borrow_record).data)
     
 
     def get(self, request):
-        if request.user.role == 'librarian' or request.user.is_superuser:
+        if request.user.role in ['librarian', 'admin']:
             borrows = BorrowRecord.objects.all()
         else:
             borrows = BorrowRecord.objects.filter(user=request.user)

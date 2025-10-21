@@ -6,7 +6,7 @@ from .models import  Book, BookCopy, BorrowRecord
 class BookAdmin(admin.ModelAdmin):
     list_display = ['title', 'author', 'publication_year', 'isbn', 'total_copies', 'language']
     list_filter = ['publication_year', 'language']
-    search_fields = ['title', 'isbn', 'topics', 'author__name']
+    search_fields = ['title', 'isbn', 'topics', 'author']
     ordering = ['-publication_year',]
 
 

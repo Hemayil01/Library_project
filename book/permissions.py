@@ -12,8 +12,6 @@ class IsAdminOrReadOnly(IsAuthenticated):
 
 class IsLibrarianOrAdmin(IsAuthenticated):
     def has_permission(self, request, view):
-        super().has_permission(request, view)
-
         if not request.user.is_authenticated:
             return False
 
@@ -22,8 +20,6 @@ class IsLibrarianOrAdmin(IsAuthenticated):
 
 class IsMemberOrAdmin(IsAuthenticated):
     def has_permission(self, request, view):
-        super().has_permission(request, view)
-
         if not request.user.is_authenticated:
             return False
 
@@ -32,8 +28,6 @@ class IsMemberOrAdmin(IsAuthenticated):
 
 class IsOwnerOrAdmin(IsAuthenticated):
     def has_object_permission(self, request, view, obj):
-        super().has_object_permission(request, view, obj)
-
         if request.method in permissions.SAFE_METHODS:
             return request.user.is_authenticated
 
@@ -45,8 +39,9 @@ class IsOwnerOrAdmin(IsAuthenticated):
 
 class CanManageBooks(IsAuthenticated):
     def has_permission(self, request, view):
-        super().has_permission(request, view)
-
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        
         if not request.user.is_authenticated:
             return False
 
@@ -64,8 +59,6 @@ class CanManageBooks(IsAuthenticated):
     
 class CanManageBookCopies(IsAuthenticated):
     def has_permission(self, request, view):
-        super().has_permission(request, view)
-
         if not request.user.is_authenticated:
             return False
 
