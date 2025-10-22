@@ -109,7 +109,7 @@ class BorrowRecordAPIView(APIView):
         )
         book_copy.status = BookCopy.Status.BORROWED
         book_copy.save()
-        return Response(BorrowRecordModelSerializer(borrow_record).data, status=status.HTTP_201_CREATED)
+        return Response({'message': 'Book borrowed successfully', 'borrow_record': BorrowRecordModelSerializer(borrow_record).data}, status=status.HTTP_201_CREATED)
 
     def return_book(self, request, id=None):
         try:
