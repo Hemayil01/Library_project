@@ -82,9 +82,12 @@ class BorrowRecordAPIView(APIView):
             permission_classes = [permissions.IsAuthenticated, IsMemberOrAdmin]
         return [perm() for perm in permission_classes]
     
-    
-    
-    def post(self, request):
+    def post(self, request, id=None):
+        if id is not None:
+            return self.return_book(request, id)
+        return self.borrow_book(request)
+
+    def borrow_book(self, request):
         book_copy_id = request.data.get('book_copy')
         try:
             book_copy = BookCopy.objects.get(id=book_copy_id)
@@ -108,7 +111,7 @@ class BorrowRecordAPIView(APIView):
         book_copy.save()
         return Response(BorrowRecordModelSerializer(borrow_record).data, status=status.HTTP_201_CREATED)
 
-    def patch(self, request, id=None):
+    def return_book(self, request, id=None):
         try:
             borrow_record = BorrowRecord.objects.get(id=id)
         except BorrowRecord.DoesNotExist:
@@ -132,7 +135,7 @@ class BorrowRecordAPIView(APIView):
         borrow_record.book_copy.save()
         borrow_record.save()
 
-        return Response(BorrowRecordModelSerializer(borrow_record).data)
+        return Response(BorrowRecordModelSerializer(borrow_record).data, status=status.HTTP_200_OK)
     
 
     def get(self, request):
