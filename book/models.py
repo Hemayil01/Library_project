@@ -2,14 +2,6 @@ from django.db import models
 
 from user.models import User
 
-# book 4 - bookcopy 3 , bookcopy 2
-# Cascade - book deletion will delete all its copies
-
-# user 3 - borrowrecord 2, borrowrecord 1
-# Cascade - user deletion will delete all their borrow records
-
-# bookCopy 3 - borrowrecord 2, borrowrecord 1
-# protect - a copy that is borrowed cannot be deleted
 
 
 class Book(models.Model):
