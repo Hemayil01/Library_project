@@ -210,4 +210,3 @@ class MeView(RetrieveUpdateAPIView):
         prof_ser.save()
 
         return Response(UserPublicSerializer(user).data)
-
