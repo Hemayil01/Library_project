@@ -230,7 +230,6 @@ To add a new permission:
 3. Update ViewSets to use the new permission
 4. Update this documentation
 5. Write unit tests
-
 Example:
 
 ```python
