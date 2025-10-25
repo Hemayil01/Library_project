@@ -2,11 +2,7 @@ from django.urls import path
 from . import views
 from rest_framework.routers import DefaultRouter
 
-"""
-Book endpoints:
- - book list: lists all books
- - book detail: retrieves a specific book by ID
-"""
+
 
 router = DefaultRouter()
 router.register('books', views.BookViewSet, basename='books')
