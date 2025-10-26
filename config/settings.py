@@ -166,30 +166,24 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Library Project API',
-    'DESCRIPTION': 'API documentation for the Library Project',
+    'DESCRIPTION': 'API documentation for the Library Management System',
     'VERSION': '1.0.0',
-
-    # JWT for security schemas
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
     'SCHEMA_PATH_PREFIX': '/api',
     'SWAGGER_UI_SETTINGS': {
         'deepLinking': True,
-        'persistAuthorization': True,  # token stays in place
+        'persistAuthorization': True,  # JWT token stays in place
         'displayOperationId': True,
     },
-    'SECURITY': [
-        {
-            'jwtAuth': []  # Bearer token auth
-        }
-    ],
+    'SECURITY': [{'jwtAuth': []}],
     'COMPONENTS': {
         'securitySchemes': {
             'jwtAuth': {
                 'type': 'http',
                 'scheme': 'bearer',
                 'bearerFormat': 'JWT',
-                'description': 'Enter your JWT token in the format: **Bearer &lt;token&gt;**',
+                'description': 'Enter your JWT token in the format: **Bearer <token>**',
             },
         },
     },
