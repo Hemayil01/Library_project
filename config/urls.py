@@ -4,8 +4,7 @@ from django.http import HttpResponse
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 def return_all_links(request):
-    return HttpResponse('<h2>API Links</h2><ul><li><a href="/api/books/">Books</a></li><li><a href="/api/copies/">Book Copies</a></li><li><a href="/auth/login/">Login</a></li><li><a href="/auth/register/">Register</a></li></ul>'
-    )
+    return HttpResponse('<h2>API Links</h2><ul><li><a href="/api/books/">Books</a></li><li><a href="/api/copies/">Book Copies</a></li><li><a href="/auth/login/">Login</a></li><li><a href="/auth/register/">Register</a></li></ul><ul><li><a href="/api/docs/">Swagger UI</a></li><li><a href="/api/redoc/">ReDoc</a></li></ul>')
 
 urlpatterns = [
     path('', return_all_links),
