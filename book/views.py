@@ -168,6 +168,9 @@ class MarkFeePaidAPIView(APIView):
             borrow_record = BorrowRecord.objects.get(id=id)
         except BorrowRecord.DoesNotExist:
             return Response({'message': 'Borrow record not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        if borrow_record.late_fee <= 0:
+            return Response({'message': 'No late fee to mark as paid'},status=status.HTTP_400_BAD_REQUEST)
 
         borrow_record.fee_paid = True
         borrow_record.save()
