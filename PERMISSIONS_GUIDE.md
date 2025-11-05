@@ -104,11 +104,11 @@ def get_permissions(self):
 
 | Method | Endpoint           | Description   | Admin | Librarian | Member   | Guest |
 | ------ | ------------------ | ------------- | ----- | --------- | -------- | ----- |
-| GET    | `/api/users/`      | List users    | ✓     | ✗         | ✗        | ✗     |
-| GET    | `/api/users/{id}/` | Retrieve user | ✓     | ✓         | ✓        | ✗     |
-| POST   | `/api/users/`      | Create user   | ✓     | ✗         | ✗        | ✗     |
-| PUT    | `/api/users/{id}/` | Update user   | ✓     | ✗         | ✓        | ✗     |
-| DELETE | `/api/users/{id}/` | Delete user   | ✓     | ✗         | ✗        | ✗     |
+| GET    | `/api/users/`      | List users    | ✓     | ✓         | ✗       | ✗     |
+| GET    | `/api/users/{id}/` | Retrieve user | ✓     | ✓         | ✓ (own)  | ✗     |
+| POST   | `/api/users/`      | Create user   | ✓     | ✗         | ✗       | ✗     |
+| PUT    | `/api/users/{id}/` | Update user   | ✓     | ✗         | ✓ (own) | ✗     |
+| DELETE | `/api/users/{id}/` | Delete user   | ✓     | ✗         | ✗       | ✗     |
 
 ---
 
