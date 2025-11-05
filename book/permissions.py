@@ -79,3 +79,4 @@ class CanManageBorrow(IsAuthenticated):
             return False
 
         return request.user.role in ['librarian', 'admin']
+        
