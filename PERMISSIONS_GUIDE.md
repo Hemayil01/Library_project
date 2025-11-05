@@ -176,7 +176,7 @@ def some_view(request):
 ### 3. Custom Action Permissions
 
 ```python
-@action(detail=True, methods=['post'], url_path='approve', permission_classes=[CanManageBorrow])
+@action(detail=True, methods=['post'], url_path='manage', permission_classes=[CanManageBorrow])
 def manage_borrow(self, request, pk=None):
     # Only librarians or admins can manage borrows
     pass
