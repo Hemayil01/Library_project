@@ -43,8 +43,9 @@ Located in `library/permissions.py`, these classes control access to different a
 
 #### `CanManageBorrow`
 
-* Controls access to managing or returning books.
+* Controls access to managing or returning borrowed books.
 * Only librarians and admins can manage or return borrowed books.
+* Members can only borrow and return their own books, but cannot manage other users’ borrow records.
 
 #### `CanManageUsers`
 
