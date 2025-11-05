@@ -16,6 +16,8 @@ class User(AbstractUser):
     join_date = models.DateTimeField(default=timezone.now)
 
     borrow_limit = models.PositiveIntegerField(default=3)
+    
+    phone_verified = models.BooleanField(default=False)
 
     email_verified = models.BooleanField(default=False)
 
@@ -34,6 +36,7 @@ class Profile(models.Model):
     address_line1 = models.CharField(max_length=128, null=True, blank=True)
     address_line2 = models.CharField(max_length=128, null=True, blank=True)
     postal_code = models.CharField(max_length=16, null=True, blank=True)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -47,6 +50,7 @@ class OneTimeCode(models.Model):
         ACCOUNT_ACTIVATION = 'activation', 'Activation'
         LOGIN = 'login', 'Login'
         PASSWORD_RESET = 'password_reset', 'Password Reset'
+        PHONE_VERIFICATION = 'phone_verification', 'Phone Verification'
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otps')
     purpose = models.CharField(max_length=20, choices=Purpose.choices)

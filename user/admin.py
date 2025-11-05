@@ -5,19 +5,19 @@ from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
-    list_display = ('username', 'email', 'role', 'join_date', 'borrow_limit', 'is_active', 'email_verified')
+    list_display = ('username', 'email', 'role', 'join_date', 'borrow_limit', 'is_active', 'email_verified', 'phone_verified')
     list_filter = ('role', 'is_active', 'is_staff', 'is_superuser')
     search_fields = ('username', 'email')
     ordering = ('-join_date',)
     fieldsets = DjangoUserAdmin.fieldsets + (
-        ('Library Info', {'fields': ('role','join_date','borrow_limit','email_verified',)}),)
+        ('Library Info', {'fields': ('role','join_date','borrow_limit','email_verified','phone_verified',)}),)
 
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = (
         'user', 'country', 'city', 'date_of_birth',
-        'address_line1', 'address_line2', 'postal_code',
+        'address_line1', 'address_line2', 'postal_code', 'phone_number'
     )
     search_fields = ('user__username', 'user__email', 'country', 'city')
     list_filter = ('country', 'city')

@@ -4,7 +4,7 @@ from .views import (
     RegisterView, ResendActivationOTPView, VerifyActivationView,
     LoginView, LogoutView,
     ForgotPasswordView, ResetPasswordView,
-    MeView, UserListView, UpdateRoleView
+    MeView, UserListView, UpdateRoleView, VerifyPhoneView, SendPhoneVerificationView
 )
 
 urlpatterns = [
@@ -21,6 +21,8 @@ urlpatterns = [
     path('password/reset/', ResetPasswordView.as_view()),
 
     path('me/', MeView.as_view()),
+    path('verify-phone/', VerifyPhoneView.as_view()),
+    path('verify-phone/send/', SendPhoneVerificationView.as_view()),
     path('users/', UserListView.as_view()),
     path('users/<int:id>/', UpdateRoleView.as_view())
 ]

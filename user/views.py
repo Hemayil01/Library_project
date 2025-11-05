@@ -11,7 +11,7 @@ from .serializers import (
     RegisterSerializer, UserPublicSerializer, ProfileSerializer, UserSerializer,
     ActivationSendSerializer, ActivationVerifySerializer,
     LoginSerializer, LogoutSerializer,
-    ForgotPasswordSerializer, ResetPasswordSerializer,
+    ForgotPasswordSerializer, ResetPasswordSerializer, SendPhoneVerificationSerializer, PhoneVerifySerializer
 )
 from .utils import generate_numeric_code, expiry
 
@@ -23,8 +23,7 @@ class UserListView(APIView):
 
     def get(self, request):
         if request.user.role not in ['admin', 'librarian']:
-            return Response({'detail': 'Only admin or librarian can view users.'},
-                            status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'Only admin or librarian can view users.'},status=status.HTTP_403_FORBIDDEN)
 
         users = User.objects.all()
         data = UserPublicSerializer(users, many=True).data
@@ -57,9 +56,9 @@ class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        ser = RegisterSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        user = ser.save()
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
 
         otp = OneTimeCode.objects.create(
             user=user,
@@ -80,9 +79,9 @@ class ResendActivationOTPView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        ser = ActivationSendSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        user = ser.validated_data['user']
+        serializer = ActivationSendSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
 
         otp = OneTimeCode.objects.create(
             user=user,
@@ -103,10 +102,10 @@ class VerifyActivationView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        ser = ActivationVerifySerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        user = ser.validated_data['user']
-        otp = ser.validated_data['otp']
+        serializer = ActivationVerifySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        otp = serializer.validated_data['otp']
 
         user.is_active = True
         user.email_verified = True
@@ -122,9 +121,9 @@ class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        ser = LoginSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        user = ser.validated_data['user']
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
 
         refresh = RefreshToken.for_user(user)
         access = refresh.access_token
@@ -140,9 +139,9 @@ class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        ser = LogoutSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        token = RefreshToken(ser.validated_data['refresh'])
+        serializer = LogoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = RefreshToken(serializer.validated_data['refresh'])
         token.blacklist()
         return Response(status=status.HTTP_205_RESET_CONTENT)
 
@@ -151,9 +150,9 @@ class ForgotPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        ser = ForgotPasswordSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        user = ser.validated_data['user']
+        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
 
         otp = OneTimeCode.objects.create(
             user=user,
@@ -174,11 +173,11 @@ class ResetPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        ser = ResetPasswordSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        user = ser.validated_data['user']
-        otp = ser.validated_data['otp']
-        new_password = ser.validated_data['new_password']
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        otp = serializer.validated_data['otp']
+        new_password = serializer.validated_data['new_password']
 
         user.set_password(new_password)
         user.save(update_fields=['password'])
@@ -201,12 +200,55 @@ class MeView(RetrieveUpdateAPIView):
         data = request.data.copy()
         profile_data = data.pop('profile', {})
 
-        user_ser = UserSerializer(user, data=data, partial=True)
-        user_ser.is_valid(raise_exception=True)
-        user_ser.save()
-        
-        prof_ser = ProfileSerializer(user.profile, data=profile_data, partial=True)
-        prof_ser.is_valid(raise_exception=True)
-        prof_ser.save()
+        user_serializer = UserSerializer(user, data=data, partial=True)
+        user_serializer.is_valid(raise_exception=True)
+        user_serializer.save()
 
-        return Response(UserPublicSerializer(user).data)
+        profile_serializer = ProfileSerializer(user.profile, data=profile_data, partial=True)
+        profile_serializer.is_valid(raise_exception=True)
+        profile_serializer.save()
+
+        return Response(UserPublicSerializer(user).data, status=status.HTTP_200_OK)
+
+class SendPhoneVerificationView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = SendPhoneVerificationSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+
+        user = request.user
+        phone_number = user.profile.phone_number
+
+        OneTimeCode.objects.filter(
+            user=user,
+            purpose=OneTimeCode.Purpose.PHONE_VERIFICATION,
+            is_used=False
+        ).delete()
+
+        otp = OneTimeCode.objects.create(
+            user=user,
+            purpose=OneTimeCode.Purpose.PHONE_VERIFICATION,
+            code=generate_numeric_code(6),
+            expires_at=expiry(10)
+        )
+        return Response({'detail': f'Verification code sent to {phone_number}.'}, status=status.HTTP_200_OK)
+
+
+class VerifyPhoneView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = PhoneVerifySerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+
+        otp = serializer.validated_data['otp']
+        user = request.user
+
+        user.phone_verified = True
+        user.save(update_fields=['phone_verified'])
+
+        otp.is_used = True
+        otp.save(update_fields=['is_used'])
+
+        return Response({'detail': 'Phone number verified successfully.'}, status=status.HTTP_200_OK)

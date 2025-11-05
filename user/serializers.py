@@ -11,8 +11,8 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
-            'avatar', 'date_of_birth', 'country', 'city',
-            'address_line1', 'address_line2', 'postal_code'
+            'avatar', 'date_of_birth', 'country', 'city', 'address_line1',
+            'address_line2', 'postal_code', 'phone_number'
         ]
 
 
@@ -22,8 +22,8 @@ class UserPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'email', 'role', 'join_date', 'borrow_limit',
-            'first_name', 'last_name', 'is_active', 'email_verified', 'profile'
+            'id', 'username', 'email', 'role', 'join_date', 'borrow_limit','first_name',
+            'last_name', 'is_active', 'email_verified', 'profile', 'phone_verified'
         ]
 
 
@@ -31,6 +31,11 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'borrow_limit', 'role']
+        
+    def validate_borrow_limit(self, value):
+        if value > 10:
+            raise serializers.ValidationError('Borrow limit cannot exceed 10.')
+        return value
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -168,6 +173,44 @@ class ResetPasswordSerializer(serializers.Serializer):
         otp = otp_qs.first()
         if otp.is_expired():
             raise serializers.ValidationError({'code': 'Code expired. Request a new one.'})
+        if otp.code != code:
+            raise serializers.ValidationError({'code': 'Invalid code.'})
+
+        attrs['user'] = user
+        attrs['otp'] = otp
+        return attrs
+    
+class SendPhoneVerificationSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=20, required=False)
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        phone = user.profile.phone_number if hasattr(user, 'profile') else None
+        if not phone:
+            raise serializers.ValidationError({'phone_number': 'User has no phone number in profile.'})
+        return attrs
+    
+class PhoneVerifySerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=6)
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        code = attrs['code']
+
+        otp_qs = OneTimeCode.objects.filter(
+            user=user,
+            purpose=OneTimeCode.Purpose.PHONE_VERIFICATION,
+            is_used=False
+        )
+
+        if not otp_qs.exists():
+            raise serializers.ValidationError({'code': 'No active phone verification code.'})
+
+        otp = otp_qs.first()
+
+        if otp.is_expired():
+            raise serializers.ValidationError({'code': 'Code expired. Request a new one.'})
+
         if otp.code != code:
             raise serializers.ValidationError({'code': 'Invalid code.'})
 

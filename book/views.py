@@ -16,6 +16,7 @@ from .permissions import (
     IsAdminOrReadOnly,
     CanManageBooks,
     CanManageBookCopies,
+    CanManageBorrow
     )
 from .paginators import CustomPageNumberPagination
 from .filters import BookFilter
@@ -73,11 +74,24 @@ class BookCopyViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAuthenticated, CanManageBookCopies]
         return [perm() for perm in permission_classes]
     
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        status_value = serializer.validated_data.get('status')
+        allowed_statuses = [BookCopy.Status.AVAILABLE, BookCopy.Status.BORROWED]
+
+        if status_value not in allowed_statuses:
+            return Response({'message': 'Invalid book copy status.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        book_copy = serializer.save()
+        return Response(BookCopyModelSerializer(book_copy).data, status=status.HTTP_201_CREATED)
+    
 
 class BorrowRecordAPIView(APIView):
     def get_permissions(self):
         if self.request.method == 'PATCH':
-            permission_classes = [permissions.IsAuthenticated, IsOwnerOrAdmin]
+            permission_classes = [permissions.IsAuthenticated, IsOwnerOrAdmin, CanManageBorrow]
         else:
             permission_classes = [permissions.IsAuthenticated, IsMemberOrAdmin]
         return [perm() for perm in permission_classes]
@@ -88,28 +102,19 @@ class BorrowRecordAPIView(APIView):
         return self.borrow_book(request)
 
     def borrow_book(self, request):
-        book_copy_id = request.data.get('book_copy')
-        try:
-            book_copy = BookCopy.objects.get(id=book_copy_id)
-        except BookCopy.DoesNotExist:
-            return Response({'message': 'Book copy not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = BorrowRecordModelSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        if book_copy.status != BookCopy.Status.AVAILABLE:
-            return Response({'message': 'Book copy not available'}, status=status.HTTP_400_BAD_REQUEST)
+        book_copy = serializer.validated_data.get('book_copy')
 
-        active_borrows = BorrowRecord.objects.filter(user=request.user, return_date__isnull=True).count()
-        if active_borrows >= request.user.borrow_limit:
-            return Response({'message': 'Borrow limit reached'}, status=status.HTTP_400_BAD_REQUEST)
-
-        due_date = timezone.now() + timezone.timedelta(days=14)
         borrow_record = BorrowRecord.objects.create(
             user=request.user,
-            book_copy=book_copy,
-            due_date=due_date
+            book_copy=book_copy
         )
+        
         book_copy.status = BookCopy.Status.BORROWED
         book_copy.save()
-        return Response({'message': 'Book borrowed successfully'}, status=status.HTTP_201_CREATED)
+        return Response({'message': 'Book borrowed successfully', 'record': BorrowRecordModelSerializer(borrow_record).data}, status=status.HTTP_201_CREATED)
 
     def return_book(self, request, id=None):
         try:
@@ -123,9 +128,9 @@ class BorrowRecordAPIView(APIView):
         elif borrow_record.user != request.user:
             return Response({'message': 'You can only return your own books'}, status=status.HTTP_403_FORBIDDEN)
 
-       
+        
         if borrow_record.due_date and now > borrow_record.due_date:
-            days_late = (now - borrow_record.due_date).days
+            days_late = max(0, (now - borrow_record.due_date).days)
             borrow_record.late_fee = decimal.Decimal(days_late) * decimal.Decimal('1.00')
         else:
             borrow_record.late_fee = decimal.Decimal('0.00')
@@ -134,8 +139,7 @@ class BorrowRecordAPIView(APIView):
         borrow_record.book_copy.status = BookCopy.Status.AVAILABLE
         borrow_record.book_copy.save()
         borrow_record.save()
-
-        return Response(BorrowRecordModelSerializer(borrow_record).data, status=status.HTTP_200_OK)
+        return Response({'message': 'Book returned successfully', 'record': BorrowRecordModelSerializer(borrow_record).data}, status=status.HTTP_200_OK)
     
 
     def get(self, request):
@@ -147,17 +151,25 @@ class BorrowRecordAPIView(APIView):
     
     
 class BorrowListAPIView(APIView):
+    queryset = BorrowRecord.objects.all()
+    serializer_class = BorrowRecordModelSerializer
     permission_classes = [permissions.IsAuthenticated, IsLibrarianOrAdmin]
+    pagination_class = CustomPageNumberPagination
 
-    def get(self, request):
-        status_filter = request.query_params.get('status')
-        queryset = BorrowRecord.objects.all()
-
+    def get_queryset(self):
+        status_filter = self.request.query_params.get('status')
+        queryset = super().get_queryset()
         if status_filter == 'overdue':
             now = timezone.now()
             queryset = queryset.filter(return_date__isnull=True, due_date__lt=now)
-
-        return Response(BorrowRecordModelSerializer(queryset, many=True).data)
+        return queryset
+    
+    def get(self, request):
+        queryset = self.get_queryset()
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+        serializer = self.serializer_class(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 class MarkFeePaidAPIView(APIView):
@@ -171,7 +183,8 @@ class MarkFeePaidAPIView(APIView):
         
         if borrow_record.late_fee <= 0:
             return Response({'message': 'No late fee to mark as paid'},status=status.HTTP_400_BAD_REQUEST)
-
-        borrow_record.fee_paid = True
-        borrow_record.save()
-        return Response({'message': 'Fee marked as paid', 'record': BorrowRecordModelSerializer(borrow_record).data})
+        
+        serializer = BorrowRecordModelSerializer(borrow_record,data={'fee_paid': True},partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Fee marked as paid', 'record': serializer.data})

@@ -1,4 +1,6 @@
 from django.db import models
+from datetime import timedelta
+from django.utils import timezone
 
 from user.models import User
 
@@ -39,6 +41,9 @@ class BookCopy(models.Model):
 
     def __str__(self):
         return f'{self.book.title} - {self.get_status_display()}'
+    
+    def is_available(self):
+        return self.status == self.Status.AVAILABLE
 
 
 class BorrowRecord(models.Model):
@@ -54,5 +59,19 @@ class BorrowRecord(models.Model):
         return f'{self.user.email} - {self.book_copy.book.title}'
 
     def is_overdue(self):
-        from django.utils import timezone
         return self.return_date is None and timezone.now() > self.due_date
+    
+    def save(self, *args, **kwargs):
+        if not self.borrow_date:
+            self.borrow_date = timezone.now()
+        if not self.due_date or self.due_date <= self.borrow_date:
+            self.due_date = self.borrow_date + timedelta(days=14)
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(due_date__gt=models.F('borrow_date')),
+                name='check_due_date_after_borrow_date'
+            )
+        ]
