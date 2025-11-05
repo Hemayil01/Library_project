@@ -41,10 +41,10 @@ Located in `library/permissions.py`, these classes control access to different a
 * Members: View only
 * Guests: View only (read-only)
 
-#### `CanApproveBorrow`
+#### `CanManageBorrow`
 
-* Controls access to approving or returning books.
-* Only librarians and admins can approve or return borrowed books.
+* Controls access to managing or returning books.
+* Only librarians and admins can manage or return borrowed books.
 
 #### `CanManageUsers`
 
@@ -98,17 +98,17 @@ def get_permissions(self):
 | GET    | `/api/borrow/`              | List borrow records | ✓     | ✓         | ✓            | ✗     |
 | POST   | `/api/borrow/`              | Borrow book         | ✓     | ✓         | ✓            | ✗     |
 | POST   | `/api/return/{id}/`         | Return book         | ✓     | ✓         | ✓            | ✗     |
-| PUT    | `/api/borrow/{id}/approve/` | Approve borrow      | ✓     | ✓         | ✗            | ✗     |
+| PUT    | `/api/borrow/{id}/manage/`  | Manage borrow      | ✓     | ✓         | ✗            | ✗     |
 
 ### User Endpoints (`/api/users/`)
 
 | Method | Endpoint           | Description   | Admin | Librarian | Member   | Guest |
 | ------ | ------------------ | ------------- | ----- | --------- | -------- | ----- |
-| GET    | `/api/users/`      | List users    | ✓     | ✗         | ✗        | ✗     |
-| GET    | `/api/users/{id}/` | Retrieve user | ✓     | ✓         | ✓        | ✗     |
-| POST   | `/api/users/`      | Create user   | ✓     | ✗         | ✗        | ✗     |
-| PUT    | `/api/users/{id}/` | Update user   | ✓     | ✗         | ✓        | ✗     |
-| DELETE | `/api/users/{id}/` | Delete user   | ✓     | ✗         | ✗        | ✗     |
+| GET    | `/api/users/`      | List users    | ✓     | ✓         | ✗       | ✗     |
+| GET    | `/api/users/{id}/` | Retrieve user | ✓     | ✓         | ✓ (own)  | ✗     |
+| POST   | `/api/users/`      | Create user   | ✓     | ✗         | ✗       | ✗     |
+| PUT    | `/api/users/{id}/` | Update user   | ✓     | ✗         | ✓ (own) | ✗     |
+| DELETE | `/api/users/{id}/` | Delete user   | ✓     | ✗         | ✗       | ✗     |
 
 ---
 
@@ -129,7 +129,7 @@ Located in `library/utils.py`, these helper functions assist in permission check
 ### Permission Checking Functions
 
 * `can_manage_books(user)`: Verify if user can manage books.
-* `can_approve_borrow(user)`: Verify if user can approve borrow requests.
+* `can_manage_borrow(user)`: Verify if user can manage borrow requests.
 * `can_manage_users(user)`: Verify if user can manage user accounts.
 
 ### Helper Function
@@ -168,17 +168,17 @@ def some_view(request):
         pass
 
     permissions = get_user_permissions(request.user)
-    if permissions['can_approve_borrow']:
-        # User can approve borrow requests
+    if permissions['can_manage_borrow']:
+        # User can manage borrow requests
         pass
 ```
 
 ### 3. Custom Action Permissions
 
 ```python
-@action(detail=True, methods=['post'], url_path='approve', permission_classes=[CanApproveBorrow])
-def approve_borrow(self, request, pk=None):
-    # Only librarians or admins can approve borrows
+@action(detail=True, methods=['post'], url_path='manage', permission_classes=[CanManageBorrow])
+def manage_borrow(self, request, pk=None):
+    # Only librarians or admins can manage borrows
     pass
 ```
 
