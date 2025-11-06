@@ -19,7 +19,7 @@ from .permissions import (
     CanManageBorrow
     )
 from .paginators import CustomPageNumberPagination
-from .filters import BookFilter
+from .filters import BookFilter, BookCopyFilter
 
 
 class HealthCheckAPIView(APIView):
