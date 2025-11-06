@@ -149,7 +149,6 @@ class BorrowRecordAPIView(APIView):
             borrows = BorrowRecord.objects.filter(user=request.user)
         return Response(BorrowRecordModelSerializer(borrows, many=True).data)
     
-    
 class BorrowListAPIView(APIView):
     queryset = BorrowRecord.objects.all()
     serializer_class = BorrowRecordModelSerializer
