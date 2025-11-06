@@ -95,15 +95,8 @@ class BorrowRecordAPIView(APIView):
         serializer = BorrowRecordModelSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
 
-        book_copy = serializer.validated_data.get('book_copy')
+        borrow_record = serializer.save(user=request.user)
 
-        borrow_record = BorrowRecord.objects.create(
-            user=request.user,
-            book_copy=book_copy
-        )
-        
-        book_copy.status = BookCopy.Status.BORROWED
-        book_copy.save()
         response_data = BorrowRecordModelSerializer(borrow_record, context={'request': request}).data
         return Response({'message': 'Book borrowed successfully', 'record': response_data}, status=status.HTTP_201_CREATED)
 
