@@ -63,7 +63,8 @@ class BookViewSet(viewsets.ModelViewSet):
 class BookCopyViewSet(viewsets.ModelViewSet):
     queryset = BookCopy.objects.all()
     serializer_class = BookCopyModelSerializer
-    filter_backends = [drf_filters.OrderingFilter]
+    filter_backends = [filters.DjangoFilterBackend, drf_filters.OrderingFilter]
+    filterset_class = BookCopyFilter
     ordering_fields = ['status', 'book__title']
     ordering = ['book__title']
 
