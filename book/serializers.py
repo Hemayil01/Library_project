@@ -37,7 +37,7 @@ class BorrowRecordModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = BorrowRecord
         fields = '__all__'
-        read_only_fields = ['id', 'borrow_date', 'late_fee']
+        read_only_fields = ['id', 'borrow_date', 'late_fee', 'user', 'due_date']
 
     def validate_book_copy(self, value):
         if value.status != BookCopy.Status.AVAILABLE:

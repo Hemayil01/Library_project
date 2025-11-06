@@ -89,6 +89,8 @@ class BookCopyViewSet(viewsets.ModelViewSet):
     
 
 class BorrowRecordAPIView(APIView):
+    serializer_class = BorrowRecordModelSerializer
+    
     def get_permissions(self):
         if self.request.method == 'PATCH':
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrAdmin, CanManageBorrow]
@@ -102,7 +104,7 @@ class BorrowRecordAPIView(APIView):
         return self.borrow_book(request)
 
     def borrow_book(self, request):
-        serializer = BorrowRecordModelSerializer(data=request.data)
+        serializer = BorrowRecordModelSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
 
         book_copy = serializer.validated_data.get('book_copy')
@@ -114,7 +116,8 @@ class BorrowRecordAPIView(APIView):
         
         book_copy.status = BookCopy.Status.BORROWED
         book_copy.save()
-        return Response({'message': 'Book borrowed successfully', 'record': BorrowRecordModelSerializer(borrow_record).data}, status=status.HTTP_201_CREATED)
+        response_data = BorrowRecordModelSerializer(borrow_record, context={'request': request}).data
+        return Response({'message': 'Book borrowed successfully', 'record': response_data}, status=status.HTTP_201_CREATED)
 
     def return_book(self, request, id=None):
         try:
@@ -139,7 +142,8 @@ class BorrowRecordAPIView(APIView):
         borrow_record.book_copy.status = BookCopy.Status.AVAILABLE
         borrow_record.book_copy.save()
         borrow_record.save()
-        return Response({'message': 'Book returned successfully', 'record': BorrowRecordModelSerializer(borrow_record).data}, status=status.HTTP_200_OK)
+        response_data = BorrowRecordModelSerializer(borrow_record, context={'request': request}).data
+        return Response({'message': 'Book returned successfully', 'record': response_data}, status=status.HTTP_200_OK)
     
 
     def get(self, request):
@@ -149,18 +153,20 @@ class BorrowRecordAPIView(APIView):
             borrows = BorrowRecord.objects.filter(user=request.user)
         return Response(BorrowRecordModelSerializer(borrows, many=True).data)
     
+
 class BorrowListAPIView(APIView):
-    queryset = BorrowRecord.objects.all()
     serializer_class = BorrowRecordModelSerializer
     permission_classes = [permissions.IsAuthenticated, IsLibrarianOrAdmin]
     pagination_class = CustomPageNumberPagination
 
     def get_queryset(self):
+        queryset = BorrowRecord.objects.all()
         status_filter = self.request.query_params.get('status')
-        queryset = super().get_queryset()
+
         if status_filter == 'overdue':
             now = timezone.now()
             queryset = queryset.filter(return_date__isnull=True, due_date__lt=now)
+
         return queryset
     
     def get(self, request):
