@@ -50,3 +50,10 @@ class BorrowRecordModelSerializer(serializers.ModelSerializer):
         if active_borrows >= user.borrow_limit:
             raise serializers.ValidationError('Borrow limit reached')
         return attrs
+        
+    def create(self, validated_data):
+        borrow = BorrowRecord.objects.create(**validated_data)
+        book_copy = borrow.book_copy
+        book_copy.status = BookCopy.Status.BORROWED
+        book_copy.save(update_fields=['status'])
+        return borrow
