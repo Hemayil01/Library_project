@@ -46,7 +46,6 @@ class BookViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return self.queryset
 
-
     def get_permissions(self):
         if self.action in ['list', 'retrieve', 'available_copies']:
             permission_classes = [permissions.AllowAny]
@@ -59,6 +58,7 @@ class BookViewSet(viewsets.ModelViewSet):
     def available_copies(self, request, pk=None):
         book = self.get_object()
         return Response({'available_copies': book.available_copies()})
+
 
 class BookCopyViewSet(viewsets.ModelViewSet):
     queryset = BookCopy.objects.all()
@@ -73,19 +73,6 @@ class BookCopyViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [permissions.IsAuthenticated, CanManageBookCopies]
         return [perm() for perm in permission_classes]
-    
-    def create(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        status_value = serializer.validated_data.get('status')
-        allowed_statuses = [BookCopy.Status.AVAILABLE, BookCopy.Status.BORROWED]
-
-        if status_value not in allowed_statuses:
-            return Response({'message': 'Invalid book copy status.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        book_copy = serializer.save()
-        return Response(BookCopyModelSerializer(book_copy).data, status=status.HTTP_201_CREATED)
     
 
 class BorrowRecordAPIView(APIView):
