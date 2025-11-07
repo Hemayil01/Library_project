@@ -57,6 +57,17 @@ def can_manage_book_copies(user):
     elif user.role == 'member':
         return False
 
+    return 
+
+def can_manage_borrow(user):
+    if not user or not user.is_authenticated:
+        return False
+
+    if user.role == 'admin':
+        return True
+    elif user.role == 'librarian':
+        return True
+
     return False
 
 
@@ -68,6 +79,7 @@ def get_user_permissions(user):
             'can_update_books': False,
             'can_delete_books': False,
             'can_manage_copies': False,
+            'can_manage_borrow': False,
         }
 
     return {
@@ -76,4 +88,5 @@ def get_user_permissions(user):
         'can_update_books': can_manage_books(user),
         'can_delete_books': can_manage_books(user),
         'can_manage_copies': can_manage_book_copies(user),
+        'can_manage_borrow': can_manage_borrow(user),
     }
