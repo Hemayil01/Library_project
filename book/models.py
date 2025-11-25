@@ -71,7 +71,7 @@ class BorrowRecord(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=models.Q(due_date__gt=models.F('borrow_date')),
+                condition=models.Q(due_date__gt=models.F('borrow_date')),
                 name='check_due_date_after_borrow_date'
             )
         ]
