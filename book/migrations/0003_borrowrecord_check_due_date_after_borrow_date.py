@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddConstraint(
             model_name='borrowrecord',
-            constraint=models.CheckConstraint(condition=models.Q(('due_date__gt', models.F('borrow_date'))), name='check_due_date_after_borrow_date'),
+            constraint=models.CheckConstraint(condition=models.Q(due_date__gt=models.F('borrow_date')), name='check_due_date_after_borrow_date'),
         ),
     ]
