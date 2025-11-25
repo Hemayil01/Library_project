@@ -4,7 +4,6 @@ from .serializers import BookModelSerializer, BookListModelSerializer, BookCopyM
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.decorators import action
-import decimal
 from django.utils import timezone
 from rest_framework import permissions, status
 from django_filters import rest_framework as filters
@@ -113,16 +112,13 @@ class BorrowRecordAPIView(APIView):
             return Response({'message': 'You can only return your own books'}, status=status.HTTP_403_FORBIDDEN)
 
         
-        if borrow_record.due_date and now > borrow_record.due_date:
-            days_late = max(0, (now - borrow_record.due_date).days)
-            borrow_record.late_fee = decimal.Decimal(days_late) * decimal.Decimal('1.00')
-        else:
-            borrow_record.late_fee = decimal.Decimal('0.00')
-            
         borrow_record.return_date = now
+        borrow_record.late_fee = borrow_record.calculated_late_fee()
+
         borrow_record.book_copy.status = BookCopy.Status.AVAILABLE
-        borrow_record.book_copy.save()
-        borrow_record.save()
+        borrow_record.book_copy.save(update_fields=['status'])
+
+        borrow_record.save(update_fields=['return_date', 'late_fee'])
         response_data = BorrowRecordModelSerializer(borrow_record, context={'request': request}).data
         return Response({'message': 'Book returned successfully', 'record': response_data}, status=status.HTTP_200_OK)
     

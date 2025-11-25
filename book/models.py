@@ -1,3 +1,4 @@
+import decimal
 from django.db import models
 from datetime import timedelta
 from django.utils import timezone
@@ -66,7 +67,19 @@ class BorrowRecord(models.Model):
             self.borrow_date = timezone.now()
         if not self.due_date or self.due_date <= self.borrow_date:
             self.due_date = self.borrow_date + timedelta(days=14)
+        
+        self.late_fee = self.calculated_late_fee()
         super().save(*args, **kwargs)
+    
+    def calculated_late_fee(self):
+        today = timezone.now()
+        end_date = self.return_date or today
+
+        if end_date > self.due_date:
+            days_late = (end_date - self.due_date).days
+            return decimal.Decimal(days_late) * decimal.Decimal('1.00')
+
+        return decimal.Decimal('0.00')
     
     class Meta:
         constraints = [
