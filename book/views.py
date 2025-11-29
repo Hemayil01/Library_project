@@ -165,8 +165,8 @@ class MarkFeePaidAPIView(APIView):
         
         if borrow_record.late_fee <= 0:
             return Response({'message': 'No late fee to mark as paid'},status=status.HTTP_400_BAD_REQUEST)
-        
-        serializer = BorrowRecordModelSerializer(borrow_record,data={'fee_paid': True},partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({'message': 'Fee marked as paid', 'record': serializer.data})
+
+        borrow_record.fee_paid = True
+        borrow_record.save(update_fields=['fee_paid'])
+
+        return Response({'message': 'Fee marked as paid'}, status=status.HTTP_200_OK)

@@ -21,8 +21,8 @@ class BookCopyAdmin(admin.ModelAdmin):
 
 @admin.register(BorrowRecord)
 class BorrowRecordAdmin(admin.ModelAdmin):
-    list_display = ['user', 'book_copy', 'borrow_date', 'due_date', 'return_date', 'late_fee']
+    list_display = ['user', 'book_copy', 'borrow_date', 'due_date', 'return_date', 'late_fee', 'fee_paid']
     list_filter = ['due_date', 'return_date']
     search_fields = ['user__email', 'book_copy__book__title']
     ordering = ['-borrow_date',]
-    readonly_fields = ['borrow_date', 'late_fee','fee_paid']
+    readonly_fields = ['borrow_date', 'late_fee', 'fee_paid']
